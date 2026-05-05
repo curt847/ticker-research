@@ -65,8 +65,9 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); opacity:
 .saved-item:hover { background: var(--surface2); border-color: var(--border); }
 .saved-item .si-subj { font-size: 13px; color: var(--text); font-weight: 500; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .saved-item .si-ts   { font-size: 10px; color: var(--muted); margin: 0 12px; flex-shrink: 0; }
-.saved-item .si-del  { background: none; border: none; color: var(--muted); padding: 2px 6px; cursor: pointer; font-size: 14px; }
-.saved-item .si-del:hover { color: var(--red); }
+.saved-item .si-act  { background: none; border: none; color: var(--muted); padding: 2px 6px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+.saved-item .si-act.si-refresh:hover { color: var(--accent); }
+.saved-item .si-act.si-del:hover { color: var(--red); }
 .status { font-size: 12px; color: var(--muted); margin-bottom: 12px; min-height: 16px; }
 .status.error { color: var(--red); }
 .output-wrap { display: none; }
@@ -136,7 +137,10 @@ button.ghost:hover { color: var(--accent); border-color: var(--accent); opacity:
   <div class="output-wrap" id="outputWrap">
     <div class="output-bar">
       <span id="outputMeta"></span>
-      <button class="ghost" id="saveBtn" onclick="saveCurrent()">★ Save</button>
+      <span style="display:flex;gap:6px;">
+        <button class="ghost" id="refreshBtn" onclick="refreshCurrent()" title="Re-search with fresh web data">↻ Refresh</button>
+        <button class="ghost" id="saveBtn" onclick="saveCurrent()">★ Save</button>
+      </span>
     </div>
     <div class="output" id="output"></div>
   </div>
@@ -155,6 +159,7 @@ const PROXY_URL = 'https://script.google.com/macros/s/AKfycbx6bii9j6bTsTQCK4QT5-
 let recent = [];
 let saved = [];
 let currentResult = null; // { subject, kind, text, sources, ts }
+let autoSaveAfterRun = false; // set by refreshSaved so the fresh result overwrites the saved entry
 
 window.addEventListener('DOMContentLoaded', () => {
   try { recent = JSON.parse(localStorage.getItem('tr_recent') || '[]'); } catch(e) { recent = []; }
@@ -190,7 +195,8 @@ function renderSaved() {
     return `<div class="saved-item" onclick="loadSaved(${i})">
       <span class="si-subj">${esc(s.subject)}</span>
       <span class="si-ts">${dt}</span>
-      <button class="si-del" onclick="event.stopPropagation();deleteSaved(${i})" title="Remove">✕</button>
+      <button class="si-act si-refresh" onclick="event.stopPropagation();refreshSaved(${i})" title="Re-search with fresh web data">↻</button>
+      <button class="si-act si-del" onclick="event.stopPropagation();deleteSaved(${i})" title="Remove">✕</button>
     </div>`;
   }).join('');
 }
@@ -207,6 +213,13 @@ function loadSaved(i) {
   renderResult(s);
 }
 
+function refreshSaved(i) {
+  const s = saved[i]; if (!s) return;
+  document.getElementById('subjectInput').value = s.subject;
+  autoSaveAfterRun = true;
+  runResearch();
+}
+
 function deleteSaved(i) {
   saved.splice(i, 1);
   localStorage.setItem('tr_saved', JSON.stringify(saved));
@@ -218,6 +231,12 @@ function clearSaved() {
   saved = [];
   localStorage.setItem('tr_saved', JSON.stringify(saved));
   renderSaved();
+}
+
+function refreshCurrent() {
+  if (!currentResult) return;
+  document.getElementById('subjectInput').value = currentResult.subject;
+  runResearch();
 }
 
 function saveCurrent() {
@@ -347,11 +366,13 @@ async function runResearch() {
     renderResult(currentResult);
     setStatus(`Generated ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · ${displaySubject}${sources.length ? ' · ' + sources.length + ' sources' : ''}`, false);
     pushRecent(displaySubject);
+    if (autoSaveAfterRun) { saveCurrent(); }
   } catch(e) {
     setStatus('Failed: ' + esc(e.message), true);
     console.error('[research]', e);
   } finally {
     btn.disabled = false;
+    autoSaveAfterRun = false;
   }
 }
 
