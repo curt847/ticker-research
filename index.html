@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticker Research</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e14; --surface: #111722; --surface2: #1a2332; --border: #1f2937;
+  --text: #e5e7eb; --muted: #6b7280; --accent: #00d4ff; --accent2: #a78bfa;
+  --green: #34d399; --red: #ef4444; --orange: #fb923c; --yellow: #fbbf24;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 32px 24px; line-height: 1.6; }
+.wrap { max-width: 880px; margin: 0 auto; }
+.hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.hdr h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+.hdr .sub { font-size: 12px; color: var(--muted); }
+.input-row { display: flex; gap: 8px; margin-bottom: 24px; }
+input[type=text] {
+  flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600;
+  padding: 14px 16px; outline: none; text-transform: uppercase; letter-spacing: 1px;
+}
+input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+button {
+  background: var(--accent); color: #0a0e14; border: none; border-radius: 8px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+  padding: 0 24px; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.5px;
+}
+button:hover { opacity: 0.85; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+.recent { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; min-height: 24px; }
+.recent-tag {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 4px 11px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.recent-tag:hover { color: var(--accent); border-color: var(--accent); }
+.status { font-size: 12px; color: var(--muted); margin-bottom: 12px; min-height: 16px; }
+.status.error { color: var(--red); }
+.output {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 28px; font-size: 14px; line-height: 1.85; white-space: pre-wrap;
+  display: none;
+}
+.output.show { display: block; }
+.output h1, .output h2, .output h3 { font-family: 'Inter', sans-serif; font-weight: 700; margin-top: 18px; margin-bottom: 8px; color: var(--accent); }
+.output h1 { font-size: 18px; }
+.output h2 { font-size: 16px; }
+.output h3 { font-size: 14px; color: var(--accent2); }
+.output strong { color: var(--text); font-weight: 700; }
+.output em { color: var(--yellow); font-style: normal; }
+.output ul, .output ol { padding-left: 22px; margin: 8px 0; }
+.output li { margin-bottom: 4px; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -1px; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.foot { margin-top: 28px; font-size: 11px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="hdr">
+    <div style="font-size:24px;">🔬</div>
+    <div>
+      <h1>Ticker Research</h1>
+      <div class="sub">External information aggregation · Powered by Claude</div>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <input type="text" id="tickerInput" placeholder="AAPL" maxlength="6" autocomplete="off">
+    <button id="researchBtn" onclick="runResearch()">RESEARCH</button>
+  </div>
+
+  <div class="recent" id="recentTags"></div>
+
+  <div class="status" id="status"></div>
+
+  <div class="output" id="output"></div>
+
+  <div class="foot">
+    Calls Claude via the RollWatch proxy. Output reflects training data through Jan 2026 — live news & filings integration is the next layer.
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+const PROXY_URL = 'https://script.google.com/macros/s/AKfycbx6bii9j6bTsTQCK4QT5-zF4XGVRygiYdqExdb0QbFQJqu__l-gLjBr8gRUyGpZzAziow/exec';
+
+let recent = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+  try { recent = JSON.parse(localStorage.getItem('tr_recent') || '[]'); } catch(e) { recent = []; }
+  renderRecent();
+  document.getElementById('tickerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runResearch();
+  });
+  document.getElementById('tickerInput').focus();
+});
+
+function renderRecent() {
+  const el = document.getElementById('recentTags');
+  if (!recent.length) { el.innerHTML = ''; return; }
+  el.innerHTML = recent.map(t => `<span class="recent-tag" onclick="loadTicker('${t}')">${t}</span>`).join('');
+}
+
+function loadTicker(t) {
+  document.getElementById('tickerInput').value = t;
+  runResearch();
+}
+
+function pushRecent(t) {
+  recent = [t, ...recent.filter(x => x !== t)].slice(0, 12);
+  localStorage.setItem('tr_recent', JSON.stringify(recent));
+  renderRecent();
+}
+
+function setStatus(msg, isError) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status' + (isError ? ' error' : '');
+}
+
+function buildPrompt(ticker) {
+  return `You are a research analyst aggregating information on a publicly traded stock for an active options trader.
+
+TICKER: ${ticker}
+
+Produce a focused research brief. Skip generic disclaimers. Use markdown headings and bullets. Cover, in this order:
+
+## Company Overview
+One paragraph: what the company does, who they serve, primary revenue drivers.
+
+## Recent Catalysts (last 3-6 months from your training cutoff)
+Earnings beats/misses, guidance changes, product launches, M&A, regulatory events. Be specific with dates and numbers when you have them.
+
+## Sentiment & Positioning
+Analyst consensus direction, notable bull/bear theses, any well-known long/short positions.
+
+## Key Risks
+3-5 specific risks. Avoid platitudes — name the actual exposure (customer concentration, regulatory pending, debt wall, etc.).
+
+## What to Watch Next
+Upcoming catalysts: earnings dates, product cycles, regulatory decisions, expiring lockups.
+
+If your training data is thin on this ticker, say so explicitly rather than padding. Note your knowledge cutoff at the bottom.`;
+}
+
+async function runResearch() {
+  const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+  if (!ticker) { setStatus('Enter a ticker', true); return; }
+  if (!/^[A-Z.\-]{1,6}$/.test(ticker)) { setStatus('Invalid ticker format', true); return; }
+
+  const btn = document.getElementById('researchBtn');
+  const out = document.getElementById('output');
+  btn.disabled = true;
+  out.classList.remove('show');
+  setStatus(`<span class="spinner"></span> Researching ${ticker}…`, false);
+  document.getElementById('status').innerHTML = `<span class="spinner"></span> Researching ${ticker}…`;
+
+  try {
+    const resp = await fetch(PROXY_URL + '?action=claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'prompt=' + encodeURIComponent(buildPrompt(ticker))
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    if (data.type === 'error') throw new Error(data.error?.message || 'API error');
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    if (!text) throw new Error('Empty response');
+
+    out.innerHTML = renderMarkdown(text);
+    out.classList.add('show');
+    setStatus(`Generated ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · ${ticker}`, false);
+    pushRecent(ticker);
+  } catch(e) {
+    setStatus('Failed: ' + e.message, true);
+    console.error('[research]', e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Minimal markdown → HTML for headings, bold, italics, lists.
+function renderMarkdown(md) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = md.split('\n');
+  let html = '';
+  let inList = false;
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    if (/^### /.test(line)) { if (inList) { html += '</ul>'; inList = false; } html += `<h3>${esc(line.slice(4))}</h3>`; continue; }
+    if (/^## /.test(line))  { if (inList) { html += '</ul>'; inList = false; } html += `<h2>${esc(line.slice(3))}</h2>`; continue; }
+    if (/^# /.test(line))   { if (inList) { html += '</ul>'; inList = false; } html += `<h1>${esc(line.slice(2))}</h1>`; continue; }
+    if (/^[-*]\s/.test(line)) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${inline(esc(line.replace(/^[-*]\s/, '')))}</li>`;
+      continue;
+    }
+    if (inList) { html += '</ul>'; inList = false; }
+    if (line.trim() === '') { html += '<br>'; continue; }
+    html += `<p>${inline(esc(line))}</p>`;
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+function inline(s) {
+  return s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+</script>
+
+</body>
+</html>
