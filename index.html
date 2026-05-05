@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ticker Research</title>
+<title>Research</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -17,11 +17,11 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color
 .hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
 .hdr h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
 .hdr .sub { font-size: 12px; color: var(--muted); }
-.input-row { display: flex; gap: 8px; margin-bottom: 24px; }
+.input-row { display: flex; gap: 8px; margin-bottom: 16px; }
 input[type=text] {
   flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600;
-  padding: 14px 16px; outline: none; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px;
+  padding: 14px 16px; outline: none;
 }
 input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
 button {
@@ -31,21 +31,54 @@ button {
 }
 button:hover { opacity: 0.85; }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
-.recent { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; min-height: 24px; }
+button.ghost { background: var(--surface); color: var(--muted); border: 1px solid var(--border); padding: 6px 12px; font-size: 11px; font-weight: 500; }
+button.ghost:hover { color: var(--accent); border-color: var(--accent); opacity: 1; }
+.mode-pill {
+  display: inline-block; padding: 2px 9px; font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; border-radius: 12px;
+  border: 1px solid; margin-bottom: 14px;
+}
+.mode-ticker { color: var(--green); border-color: rgba(52,211,153,0.4); background: rgba(52,211,153,0.08); }
+.mode-topic  { color: var(--accent2); border-color: rgba(167,139,250,0.4); background: rgba(167,139,250,0.08); }
+.recent { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; min-height: 24px; }
 .recent-tag {
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   padding: 4px 11px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--muted); cursor: pointer; transition: all 0.15s;
+  color: var(--muted); cursor: pointer; transition: all 0.15s; max-width: 240px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .recent-tag:hover { color: var(--accent); border-color: var(--accent); }
+.saved-section {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 24px;
+}
+.saved-section .saved-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+  font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+}
+.saved-list { display: flex; flex-direction: column; gap: 4px; }
+.saved-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.15s;
+  border: 1px solid transparent;
+}
+.saved-item:hover { background: var(--surface2); border-color: var(--border); }
+.saved-item .si-subj { font-size: 13px; color: var(--text); font-weight: 500; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.saved-item .si-ts   { font-size: 10px; color: var(--muted); margin: 0 12px; flex-shrink: 0; }
+.saved-item .si-del  { background: none; border: none; color: var(--muted); padding: 2px 6px; cursor: pointer; font-size: 14px; }
+.saved-item .si-del:hover { color: var(--red); }
 .status { font-size: 12px; color: var(--muted); margin-bottom: 12px; min-height: 16px; }
 .status.error { color: var(--red); }
+.output-wrap { display: none; }
+.output-wrap.show { display: block; }
+.output-bar {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+  font-size: 11px; color: var(--muted); padding: 0 4px;
+}
 .output {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  padding: 24px 28px; font-size: 14px; line-height: 1.85; white-space: pre-wrap;
-  display: none;
+  padding: 24px 28px; font-size: 14px; line-height: 1.85;
 }
-.output.show { display: block; }
 .output h1, .output h2, .output h3 { font-family: 'Inter', sans-serif; font-weight: 700; margin-top: 18px; margin-bottom: 8px; color: var(--accent); }
 .output h1 { font-size: 18px; }
 .output h2 { font-size: 16px; }
@@ -54,6 +87,18 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .output em { color: var(--yellow); font-style: normal; }
 .output ul, .output ol { padding-left: 22px; margin: 8px 0; }
 .output li { margin-bottom: 4px; }
+.output a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+.output a:hover { border-bottom-style: solid; }
+.output p { margin: 6px 0; }
+.sources {
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.sources-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.source-item { font-size: 12px; margin-bottom: 6px; padding-left: 14px; position: relative; }
+.source-item::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+.source-item a { color: var(--text); text-decoration: none; }
+.source-item a:hover { color: var(--accent); }
+.source-item .src-host { color: var(--muted); font-size: 11px; margin-left: 6px; }
 .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -1px; margin-right: 6px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .foot { margin-top: 28px; font-size: 11px; color: var(--muted); text-align: center; }
@@ -66,24 +111,38 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   <div class="hdr">
     <div style="font-size:24px;">🔬</div>
     <div>
-      <h1>Ticker Research</h1>
-      <div class="sub">External information aggregation · Powered by Claude</div>
+      <h1>Research</h1>
+      <div class="sub">Tickers, topics, anything — live web search via Claude</div>
     </div>
   </div>
 
   <div class="input-row">
-    <input type="text" id="tickerInput" placeholder="AAPL" maxlength="6" autocomplete="off">
+    <input type="text" id="subjectInput" placeholder="Ticker (NVDA), topic (AI infrastructure spend), event, person…" autocomplete="off">
     <button id="researchBtn" onclick="runResearch()">RESEARCH</button>
   </div>
 
   <div class="recent" id="recentTags"></div>
 
+  <div class="saved-section" id="savedSection" style="display:none;">
+    <div class="saved-header">
+      <span>★ Saved (<span id="savedCount">0</span>)</span>
+      <button class="ghost" onclick="clearSaved()">Clear all</button>
+    </div>
+    <div class="saved-list" id="savedList"></div>
+  </div>
+
   <div class="status" id="status"></div>
 
-  <div class="output" id="output"></div>
+  <div class="output-wrap" id="outputWrap">
+    <div class="output-bar">
+      <span id="outputMeta"></span>
+      <button class="ghost" id="saveBtn" onclick="saveCurrent()">★ Save</button>
+    </div>
+    <div class="output" id="output"></div>
+  </div>
 
   <div class="foot">
-    Calls Claude via the RollWatch proxy. Output reflects training data through Jan 2026 — live news & filings integration is the next layer.
+    Calls Claude with web_search via the RollWatch proxy. Output reflects live web sources.
   </div>
 
 </div>
@@ -94,118 +153,253 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 const PROXY_URL = 'https://script.google.com/macros/s/AKfycbx6bii9j6bTsTQCK4QT5-zF4XGVRygiYdqExdb0QbFQJqu__l-gLjBr8gRUyGpZzAziow/exec';
 
 let recent = [];
+let saved = [];
+let currentResult = null; // { subject, kind, text, sources, ts }
 
 window.addEventListener('DOMContentLoaded', () => {
   try { recent = JSON.parse(localStorage.getItem('tr_recent') || '[]'); } catch(e) { recent = []; }
+  try { saved  = JSON.parse(localStorage.getItem('tr_saved')  || '[]'); } catch(e) { saved  = []; }
   renderRecent();
-  document.getElementById('tickerInput').addEventListener('keydown', e => {
+  renderSaved();
+  document.getElementById('subjectInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') runResearch();
   });
-  document.getElementById('tickerInput').focus();
+  document.getElementById('subjectInput').focus();
 });
+
+function detectKind(subject) {
+  // Ticker = 1-6 chars, all uppercase letters with optional . or - (BRK.B, RDS-A)
+  if (/^[A-Z]{1,6}([.\-][A-Z]{1,2})?$/.test(subject.trim())) return 'ticker';
+  return 'topic';
+}
 
 function renderRecent() {
   const el = document.getElementById('recentTags');
   if (!recent.length) { el.innerHTML = ''; return; }
-  el.innerHTML = recent.map(t => `<span class="recent-tag" onclick="loadTicker('${t}')">${t}</span>`).join('');
+  el.innerHTML = recent.map(r => `<span class="recent-tag" onclick="loadSubject(${JSON.stringify(r).replace(/"/g, '&quot;')})">${esc(r)}</span>`).join('');
 }
 
-function loadTicker(t) {
-  document.getElementById('tickerInput').value = t;
+function renderSaved() {
+  const sec = document.getElementById('savedSection');
+  const list = document.getElementById('savedList');
+  document.getElementById('savedCount').textContent = saved.length;
+  if (!saved.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  list.innerHTML = saved.map((s, i) => {
+    const dt = new Date(s.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `<div class="saved-item" onclick="loadSaved(${i})">
+      <span class="si-subj">${esc(s.subject)}</span>
+      <span class="si-ts">${dt}</span>
+      <button class="si-del" onclick="event.stopPropagation();deleteSaved(${i})" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function loadSubject(subj) {
+  document.getElementById('subjectInput').value = subj;
   runResearch();
 }
 
-function pushRecent(t) {
-  recent = [t, ...recent.filter(x => x !== t)].slice(0, 12);
+function loadSaved(i) {
+  const s = saved[i]; if (!s) return;
+  document.getElementById('subjectInput').value = s.subject;
+  currentResult = s;
+  renderResult(s);
+}
+
+function deleteSaved(i) {
+  saved.splice(i, 1);
+  localStorage.setItem('tr_saved', JSON.stringify(saved));
+  renderSaved();
+}
+
+function clearSaved() {
+  if (!confirm('Remove all saved research?')) return;
+  saved = [];
+  localStorage.setItem('tr_saved', JSON.stringify(saved));
+  renderSaved();
+}
+
+function saveCurrent() {
+  if (!currentResult) return;
+  // Avoid dupes: replace existing entry with same subject
+  saved = saved.filter(s => s.subject !== currentResult.subject);
+  saved.unshift({ ...currentResult, ts: Date.now() });
+  saved = saved.slice(0, 50);
+  localStorage.setItem('tr_saved', JSON.stringify(saved));
+  renderSaved();
+  document.getElementById('saveBtn').textContent = '★ Saved';
+  setTimeout(() => { const b = document.getElementById('saveBtn'); if (b) b.textContent = '★ Save'; }, 1500);
+}
+
+function pushRecent(subj) {
+  recent = [subj, ...recent.filter(x => x !== subj)].slice(0, 12);
   localStorage.setItem('tr_recent', JSON.stringify(recent));
   renderRecent();
 }
 
 function setStatus(msg, isError) {
   const el = document.getElementById('status');
-  el.textContent = msg;
+  el.innerHTML = msg;
   el.className = 'status' + (isError ? ' error' : '');
 }
 
-function buildPrompt(ticker) {
-  return `You are a research analyst aggregating information on a publicly traded stock for an active options trader.
+function buildTickerPrompt(ticker) {
+  return `You are a research analyst aggregating LIVE information on a publicly traded stock for an active options trader. Use the web_search tool to find current information — do not rely on training data alone.
 
 TICKER: ${ticker}
 
-Produce a focused research brief. Skip generic disclaimers. Use markdown headings and bullets. Cover, in this order:
+Search for:
+- Recent earnings reports and guidance changes
+- Analyst rating/price target changes
+- Major catalysts in the next 30-60 days (product launches, regulatory decisions, court cases)
+- Active stories in financial press right now
+- Notable insider transactions or 13F changes if material
 
-## Company Overview
-One paragraph: what the company does, who they serve, primary revenue drivers.
+Output a focused brief in markdown. Skip generic disclaimers.
 
-## Recent Catalysts (last 3-6 months from your training cutoff)
-Earnings beats/misses, guidance changes, product launches, M&A, regulatory events. Be specific with dates and numbers when you have them.
+## Snapshot
+One paragraph: what the company does + current narrative driving the stock.
+
+## What's Happening Now
+3-6 bullets of the most recent material news, each with a source link inline.
 
 ## Sentiment & Positioning
-Analyst consensus direction, notable bull/bear theses, any well-known long/short positions.
+Analyst consensus direction, notable bull/bear theses currently in circulation.
 
 ## Key Risks
-3-5 specific risks. Avoid platitudes — name the actual exposure (customer concentration, regulatory pending, debt wall, etc.).
+3-5 specific risks. Name the actual exposure (customer concentration, regulatory pending, debt wall, etc.) — not platitudes.
 
 ## What to Watch Next
-Upcoming catalysts: earnings dates, product cycles, regulatory decisions, expiring lockups.
+Upcoming dated catalysts: earnings dates, product cycles, regulatory decisions, expiring lockups.
 
-If your training data is thin on this ticker, say so explicitly rather than padding. Note your knowledge cutoff at the bottom.`;
+End with a brief note on data freshness if any sources are stale.`;
+}
+
+function buildTopicPrompt(topic) {
+  return `You are a research curator. The user is interested in this subject right now and wants a curated reading list plus a focused briefing. Use the web_search tool to find recent, high-quality material — do not rely on training data alone.
+
+SUBJECT: ${topic}
+
+Search for the most informative, recent material on this subject. Prefer primary sources, in-depth analysis, and authoritative voices. Avoid SEO content and aggregators.
+
+Output in markdown. Skip generic disclaimers.
+
+## TL;DR
+2-4 sentences capturing the current state of this subject as of right now.
+
+## What's Happening
+The 3-5 most important developments, with inline source links. Be specific with names, numbers, dates.
+
+## Curated Reads
+A list of 5-10 articles/posts/papers worth reading. For each:
+- **[Title](URL)** — one sentence on what's in it and why it matters.
+
+## Open Questions
+What's still unresolved or contested. 3-5 bullets.
+
+## Where to Watch Next
+What developments to track over coming weeks.`;
 }
 
 async function runResearch() {
-  const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
-  if (!ticker) { setStatus('Enter a ticker', true); return; }
-  if (!/^[A-Z.\-]{1,6}$/.test(ticker)) { setStatus('Invalid ticker format', true); return; }
+  const subject = document.getElementById('subjectInput').value.trim();
+  if (!subject) { setStatus('Enter a ticker, topic, or anything you want researched', true); return; }
+
+  const kind = detectKind(subject);
+  const prompt = kind === 'ticker' ? buildTickerPrompt(subject.toUpperCase()) : buildTopicPrompt(subject);
+  const displaySubject = kind === 'ticker' ? subject.toUpperCase() : subject;
 
   const btn = document.getElementById('researchBtn');
-  const out = document.getElementById('output');
+  const wrap = document.getElementById('outputWrap');
   btn.disabled = true;
-  out.classList.remove('show');
-  setStatus(`<span class="spinner"></span> Researching ${ticker}…`, false);
-  document.getElementById('status').innerHTML = `<span class="spinner"></span> Researching ${ticker}…`;
+  wrap.classList.remove('show');
+  setStatus(`<span class="spinner"></span> Researching <strong>${esc(displaySubject)}</strong> with web search… (15-45s)`, false);
 
   try {
-    const resp = await fetch(PROXY_URL + '?action=claude', {
+    const resp = await fetch(PROXY_URL + '?action=research', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'prompt=' + encodeURIComponent(buildPrompt(ticker))
+      body: 'prompt=' + encodeURIComponent(prompt)
     });
     const data = await resp.json();
-    if (data.error) throw new Error(data.error);
+    if (data.error) throw new Error(typeof data.error === 'string' ? data.error : data.error.message || 'API error');
     if (data.type === 'error') throw new Error(data.error?.message || 'API error');
-    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+
+    // Extract text + collect web search result URLs from tool_result blocks
+    const blocks = data.content || [];
+    const text = blocks.filter(b => b.type === 'text').map(b => b.text).join('\n\n');
+    const sources = [];
+    const seen = new Set();
+    blocks.forEach(b => {
+      if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) {
+        b.content.forEach(r => {
+          if (r.type === 'web_search_result' && r.url && !seen.has(r.url)) {
+            seen.add(r.url);
+            sources.push({ url: r.url, title: r.title || r.url, page_age: r.page_age });
+          }
+        });
+      }
+    });
     if (!text) throw new Error('Empty response');
 
-    out.innerHTML = renderMarkdown(text);
-    out.classList.add('show');
-    setStatus(`Generated ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · ${ticker}`, false);
-    pushRecent(ticker);
+    currentResult = { subject: displaySubject, kind, text, sources, ts: Date.now() };
+    renderResult(currentResult);
+    setStatus(`Generated ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · ${displaySubject}${sources.length ? ' · ' + sources.length + ' sources' : ''}`, false);
+    pushRecent(displaySubject);
   } catch(e) {
-    setStatus('Failed: ' + e.message, true);
+    setStatus('Failed: ' + esc(e.message), true);
     console.error('[research]', e);
   } finally {
     btn.disabled = false;
   }
 }
 
-// Minimal markdown → HTML for headings, bold, italics, lists.
+function renderResult(r) {
+  const out = document.getElementById('output');
+  const meta = document.getElementById('outputMeta');
+  const wrap = document.getElementById('outputWrap');
+  const saveBtn = document.getElementById('saveBtn');
+
+  const pillClass = r.kind === 'ticker' ? 'mode-ticker' : 'mode-topic';
+  const pillText  = r.kind === 'ticker' ? 'TICKER' : 'TOPIC';
+  meta.innerHTML = `<span class="mode-pill ${pillClass}" style="margin-bottom:0">${pillText}</span> · ${esc(r.subject)} · ${new Date(r.ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
+
+  let html = renderMarkdown(r.text);
+  if (r.sources && r.sources.length) {
+    html += '<div class="sources"><div class="sources-label">Web sources cited</div>'
+      + r.sources.map(s => {
+        let host = ''; try { host = new URL(s.url).hostname.replace(/^www\./, ''); } catch(e) {}
+        return `<div class="source-item"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a><span class="src-host">${esc(host)}</span></div>`;
+      }).join('')
+      + '</div>';
+  }
+  out.innerHTML = html;
+  wrap.classList.add('show');
+
+  // Reset save button state — show "Saved" if already in saved list
+  const isSaved = saved.some(s => s.subject === r.subject);
+  saveBtn.textContent = isSaved ? '★ Saved' : '★ Save';
+}
+
+// Minimal markdown → HTML: headings, bold, italics, lists, [text](url) links.
 function renderMarkdown(md) {
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const lines = md.split('\n');
   let html = '';
   let inList = false;
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
-    if (/^### /.test(line)) { if (inList) { html += '</ul>'; inList = false; } html += `<h3>${esc(line.slice(4))}</h3>`; continue; }
-    if (/^## /.test(line))  { if (inList) { html += '</ul>'; inList = false; } html += `<h2>${esc(line.slice(3))}</h2>`; continue; }
-    if (/^# /.test(line))   { if (inList) { html += '</ul>'; inList = false; } html += `<h1>${esc(line.slice(2))}</h1>`; continue; }
+    const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+    if (/^### /.test(line)) { closeList(); html += `<h3>${inline(esc(line.slice(4)))}</h3>`; continue; }
+    if (/^## /.test(line))  { closeList(); html += `<h2>${inline(esc(line.slice(3)))}</h2>`; continue; }
+    if (/^# /.test(line))   { closeList(); html += `<h1>${inline(esc(line.slice(2)))}</h1>`; continue; }
     if (/^[-*]\s/.test(line)) {
       if (!inList) { html += '<ul>'; inList = true; }
       html += `<li>${inline(esc(line.replace(/^[-*]\s/, '')))}</li>`;
       continue;
     }
-    if (inList) { html += '</ul>'; inList = false; }
-    if (line.trim() === '') { html += '<br>'; continue; }
+    closeList();
+    if (line.trim() === '') { html += ''; continue; }
     html += `<p>${inline(esc(line))}</p>`;
   }
   if (inList) html += '</ul>';
@@ -213,8 +407,14 @@ function renderMarkdown(md) {
 }
 function inline(s) {
   return s
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, t, u) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    .replace(/(?<![*])\*([^*]+)\*(?![*])/g, '<em>$1</em>');
+}
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 </script>
 
