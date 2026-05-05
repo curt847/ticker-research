@@ -279,6 +279,7 @@ TICKER: ${ticker}
 
 Hard rules:
 - Prefer items dated in the LAST 7 DAYS. Items 7-30 days old only if directly material to current price action.
+- Items from the LAST 72 HOURS are gold — lead the headlines section with them and prefix each with "🔥 " so they stand out.
 - EXCLUDE evergreen explanations, "what is [company]", educational pieces, and generic primers.
 - EXCLUDE training-data context unless it directly explains a current event.
 - Every news bullet MUST include a date (e.g. "Nov 14") and an inline source link.
@@ -289,7 +290,7 @@ Output in markdown. Skip generic disclaimers. Skip company background.
 One sentence: the dominant narrative moving the stock this week.
 
 ## This Week's Headlines
-5-8 bullets, sorted newest first. Format: **[Date]** — headline, with inline [source](url). One sentence max per bullet.
+5-8 bullets, sorted newest first. Last-72-hour items lead the list with "🔥 " prefix. Format: **[Date]** — headline, with inline [source](url). One sentence max per bullet.
 
 ## Active Catalysts (next 30 days)
 Dated upcoming events only: earnings, product launches, regulatory decisions, court rulings, expiring lockups. Skip if nothing dated.
@@ -307,6 +308,7 @@ SUBJECT: ${topic}
 
 Hard rules:
 - Prefer items dated in the LAST 7 DAYS. Items 7-30 days old only if they're still actively driving the conversation.
+- Items from the LAST 72 HOURS are gold — lead the developments section with them and prefix each with "🔥 " so they stand out.
 - EXCLUDE evergreen explainers, "what is X" content, primers, and overviews.
 - EXCLUDE training-data context unless it directly frames a current event.
 - Every item MUST include a date and an inline source link.
@@ -318,7 +320,7 @@ Output in markdown. Skip generic disclaimers.
 One sentence: the dominant story on this subject this week.
 
 ## This Week's Developments
-5-8 bullets, sorted newest first. Format: **[Date]** — what happened, with inline [source](url). One sentence max per bullet.
+5-8 bullets, sorted newest first. Last-72-hour items lead the list with "🔥 " prefix. Format: **[Date]** — what happened, with inline [source](url). One sentence max per bullet.
 
 ## Worth Reading Now
 5-8 recent (last 30 days max) articles/posts/papers. For each:
