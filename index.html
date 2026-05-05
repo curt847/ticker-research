@@ -273,61 +273,61 @@ function setStatus(msg, isError) {
 }
 
 function buildTickerPrompt(ticker) {
-  return `You are a research analyst aggregating LIVE information on a publicly traded stock for an active options trader. Use the web_search tool to find current information — do not rely on training data alone.
+  return `You are a NEWS-focused research analyst for an active options trader. Use the web_search tool aggressively. The user wants what's happening RIGHT NOW, not history.
 
 TICKER: ${ticker}
 
-Search for:
-- Recent earnings reports and guidance changes
-- Analyst rating/price target changes
-- Major catalysts in the next 30-60 days (product launches, regulatory decisions, court cases)
-- Active stories in financial press right now
-- Notable insider transactions or 13F changes if material
+Hard rules:
+- Prefer items dated in the LAST 7 DAYS. Items 7-30 days old only if directly material to current price action.
+- EXCLUDE evergreen explanations, "what is [company]", educational pieces, and generic primers.
+- EXCLUDE training-data context unless it directly explains a current event.
+- Every news bullet MUST include a date (e.g. "Nov 14") and an inline source link.
 
-Output a focused brief in markdown. Skip generic disclaimers.
+Output in markdown. Skip generic disclaimers. Skip company background.
 
-## Snapshot
-One paragraph: what the company does + current narrative driving the stock.
+## One-Line Snapshot
+One sentence: the dominant narrative moving the stock this week.
 
-## What's Happening Now
-3-6 bullets of the most recent material news, each with a source link inline.
+## This Week's Headlines
+5-8 bullets, sorted newest first. Format: **[Date]** — headline, with inline [source](url). One sentence max per bullet.
 
-## Sentiment & Positioning
-Analyst consensus direction, notable bull/bear theses currently in circulation.
+## Active Catalysts (next 30 days)
+Dated upcoming events only: earnings, product launches, regulatory decisions, court rulings, expiring lockups. Skip if nothing dated.
 
-## Key Risks
-3-5 specific risks. Name the actual exposure (customer concentration, regulatory pending, debt wall, etc.) — not platitudes.
+## Live Analyst Action (last 30 days)
+Recent rating changes, price target moves, or notable upgrades/downgrades. Format: **[Date]** — Firm, action. Skip section if nothing fresh.
 
-## What to Watch Next
-Upcoming dated catalysts: earnings dates, product cycles, regulatory decisions, expiring lockups.
-
-End with a brief note on data freshness if any sources are stale.`;
+If the last 7 days are quiet, say so explicitly. Do not pad with older material.`;
 }
 
 function buildTopicPrompt(topic) {
-  return `You are a research curator. The user is interested in this subject right now and wants a curated reading list plus a focused briefing. Use the web_search tool to find recent, high-quality material — do not rely on training data alone.
+  return `You are a NEWS curator. The user wants what's happening RIGHT NOW on this subject — not background, not explainers, not history. Use the web_search tool aggressively.
 
 SUBJECT: ${topic}
 
-Search for the most informative, recent material on this subject. Prefer primary sources, in-depth analysis, and authoritative voices. Avoid SEO content and aggregators.
+Hard rules:
+- Prefer items dated in the LAST 7 DAYS. Items 7-30 days old only if they're still actively driving the conversation.
+- EXCLUDE evergreen explainers, "what is X" content, primers, and overviews.
+- EXCLUDE training-data context unless it directly frames a current event.
+- Every item MUST include a date and an inline source link.
+- Prefer primary sources, reporting, and authoritative voices over SEO aggregators.
 
 Output in markdown. Skip generic disclaimers.
 
-## TL;DR
-2-4 sentences capturing the current state of this subject as of right now.
+## One-Line Snapshot
+One sentence: the dominant story on this subject this week.
 
-## What's Happening
-The 3-5 most important developments, with inline source links. Be specific with names, numbers, dates.
+## This Week's Developments
+5-8 bullets, sorted newest first. Format: **[Date]** — what happened, with inline [source](url). One sentence max per bullet.
 
-## Curated Reads
-A list of 5-10 articles/posts/papers worth reading. For each:
-- **[Title](URL)** — one sentence on what's in it and why it matters.
+## Worth Reading Now
+5-8 recent (last 30 days max) articles/posts/papers. For each:
+- **[Date · Title](URL)** — one sentence on the new angle or finding it brings. Skip pieces that just summarize the news.
 
-## Open Questions
-What's still unresolved or contested. 3-5 bullets.
+## What to Watch Next 7-14 Days
+Upcoming dated events, expected announcements, catalysts on the calendar. Skip if nothing dated.
 
-## Where to Watch Next
-What developments to track over coming weeks.`;
+If the last 7 days are quiet on this subject, say so explicitly. Do not pad with older material.`;
 }
 
 async function runResearch() {
